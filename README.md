@@ -13,6 +13,11 @@ source env/bin/activate  # Activate the environment in linux
 # install required packages
 pip install flask flask-socketio google-cloud-aiplatform python-dotenv
 
+Taabish Khan
+Zohair Khan
+Hamza Gelle
+Augustus 
+
 This MADHACKS project is composed of a server, database, and API calls to gemini for dynamic querying.
 
 The server continously runs and accepts new joining clients to a priority queue. It will add them in order and pair up the top two
