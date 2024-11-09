@@ -3,6 +3,9 @@ from flask_socketio import SocketIO, emit, join_room
 from dotenv import load_dotenv
 import os
 import queue
+from ai_api import generate_text
+import threading
+import time
 
 # Load environment variables
 load_dotenv()
@@ -51,10 +54,49 @@ def join_queue():
     username = session.get('username')
     if username:
         print(f"[DEBUG] {username} has joined the queue.")
-        # Attempt to pair clients immediately
-        pair_clients()
+        
+    pair_clients()
 
 def pair_clients():
+    """Pair two clients if available and start a game."""
+    if client_queue.qsize() >= 2:
+        player1 = client_queue.get()
+        player2 = client_queue.get()
+
+        # Create a unique game ID and initialize the game
+        game_id = f"game_{player1}_{player2}"
+        games_in_progress[game_id] = {
+            "players": [player1, player2],
+            "current_turn": player1,  # Set player1 as the starting player
+            "moves": []
+        }
+
+        # Retrieve sids using username-to-sid mapping
+        player1_sid = username_sid_map.get(player1)
+        player2_sid = username_sid_map.get(player2)
+
+        print(f"[DEBUG] Pairing {player1} and {player2} with game_id {game_id}.")
+
+        if player1_sid and player2_sid:
+            # Use the game ID as the room name and have both players join this room
+            join_room(game_id, sid=player1_sid)
+            join_room(game_id, sid=player2_sid)
+            print(f"[DEBUG] {player1} and {player2} have joined room {game_id}")
+
+            # Notify both players to redirect to the game page
+            socketio.emit('start_game', {'game_id': game_id, 'opponent': player2, 'is_turn': True}, to=player1_sid)
+            socketio.emit('start_game', {'game_id': game_id, 'opponent': player1, 'is_turn': False}, to=player2_sid)
+
+            # Immediately notify Player 1 to start their turn
+            print(f"[DEBUG] Emitting start_turn to {player1}")
+            socketio.emit('start_turn', {'player': player1}, to=player1_sid)
+
+            # Notify Player 2 that they should wait for their turn
+            print(f"[DEBUG] Emitting waiting_turn to {player2}")
+            socketio.emit('waiting_turn', {'player': player1}, to=player2_sid)
+        else:
+            print(f"[ERROR] Could not retrieve sids for {player1} or {player2}.")
+
     """Pair two clients if available and start a game."""
     if client_queue.qsize() >= 2:
         player1 = client_queue.get()
@@ -123,5 +165,17 @@ def handle_submit_move(data):
     else:
         emit('error', {'message': 'Not your turn.'})
 
+def log_queue():
+    """Periodically log the players in the queue."""
+    while True:
+        # Get all usernames currently in the queue (without dequeuing them)
+        queue_list = list(client_queue.queue)
+        print(f"[DEBUG] Players currently in queue: {queue_list}")
+        time.sleep(5)  # Log every 5 seconds
+
+# Start the queue logging in a separate background thread
+threading.Thread(target=log_queue, daemon=True).start()
+
 if __name__ == '__main__':
     socketio.run(app, debug=True)
+    
