@@ -5,9 +5,11 @@ sleep :( is for the week 😈
 
 setup 
 
-# create a virtual environment
-python3 -m venv env
-source env/bin/activate  # Activate the environment
+# Activate Environment
+.\env\Scripts\Activate #activate the environment in windows powershell
+
+source env/bin/activate  # Activate the environment in linux
 
 # install required packages
 pip install flask flask-socketio openai sqlite3
+
