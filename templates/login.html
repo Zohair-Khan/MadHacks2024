@@ -1,0 +1,16 @@
+<!-- templates/login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Gemini Text Game</title>
+</head>
+<body>
+    <h1>Welcome to the Gemini Text Game</h1>
+    <form action="{{ url_for('join') }}" method="POST">
+        <label for="username">Enter your username:</label>
+        <input type="text" id="username" name="username" required>
+        <button type="submit">Join Queue</button>
+    </form>
+</body>
+</html>
