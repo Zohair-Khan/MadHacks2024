@@ -1,0 +1,70 @@
+<!-- templates/game.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gemini Text Game - Game</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>Gemini Text Generation Game</h1>
+    <div id="game-status">Game ID: {{ game_id }}</div>
+    <div id="turn-status">Waiting for turn...</div>
+    <div id="move-log"></div>
+
+    <div id="input-area" style="display: none;">
+        <input type="text" id="promptInput" placeholder="Enter your prompt here">
+        <button onclick="submitMove()">Submit</button>
+    </div>
+
+    <script>
+        const socket = io();
+        const gameId = "{{ game_id }}";
+        let myTurn = false;
+
+        // Confirm client connection and room joining
+        socket.on('connect', () => {
+            console.log("[DEBUG] Connected to server with SID:", socket.id);
+            console.log("[DEBUG] Joining game room:", gameId);
+            socket.emit('join_room', { game_id: gameId });
+        });
+
+        // Handle start_turn and waiting_turn events to manage turns
+        socket.on('start_turn', (data) => {
+            console.log("[DEBUG] Received start_turn event for turn player:", data.player);
+            myTurn = true;
+            document.getElementById('turn-status').textContent = "Your turn!";
+            document.getElementById('input-area').style.display = "block";
+        });
+
+        socket.on('waiting_turn', (data) => {
+            console.log("[DEBUG] Received waiting_turn event, turn player:", data.player);
+            myTurn = false;
+            document.getElementById('turn-status').textContent = "Waiting for opponent's move...";
+            document.getElementById('input-area').style.display = "none";
+        });
+
+        // Listen for move results and update the log
+        socket.on('move_result', (data) => {
+            console.log("[DEBUG] Received move_result event");
+            const moveLog = document.getElementById('move-log');
+            const newMove = document.createElement('p');
+            newMove.textContent = `${data.player}: ${data.prompt} - AI Response: ${data.response}`;
+            moveLog.appendChild(newMove);
+        });
+
+        // Function to submit a move
+        function submitMove() {
+            if (myTurn) {
+                const prompt = document.getElementById('promptInput').value;
+                console.log("[DEBUG] Submitting move:", prompt);
+                socket.emit('submit_move', { game_id: gameId, prompt });
+                document.getElementById('promptInput').value = '';
+                myTurn = false;
+            } else {
+                console.log("[DEBUG] Tried to submit move, but it's not my turn.");
+            }
+        }
+    </script>
+</body>
+</html>
