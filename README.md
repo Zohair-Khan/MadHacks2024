@@ -11,5 +11,5 @@ setup
 source env/bin/activate  # Activate the environment in linux
 
 # install required packages
-pip install flask flask-socketio openai sqlite3
+pip install flask flask-socketio google-cloud-aiplatform python-dotenv
 

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gemini Text Generation Game</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 50px;
+        }
+        #response-area {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        #error-message {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gemini Text Generation Game</h1>
+    <p>Type a prompt to generate a response from the AI.</p>
+
+    <div id="game-area">
+        <input type="text" id="promptInput" placeholder="Enter your prompt here" style="width: 300px; padding: 8px;">
+        <button onclick="submitPrompt()">Submit</button>
+    </div>
+
+    <div id="response-area"></div>
+    <div id="error-message"></div>
+
+    <script>
+        const socket = io();
+
+        // Function to submit the prompt to the backend
+        function submitPrompt() {
+            const prompt = document.getElementById('promptInput').value;
+            if (prompt.trim() === "") {
+                document.getElementById('error-message').textContent = "Please enter a prompt!";
+                return;
+            }
+
+            // Clear any previous error messages
+            document.getElementById('error-message').textContent = "";
+
+            // Emit the prompt to the backend
+            socket.emit('submit_move', { prompt });
+        }
+
+        // Listen for the move_result event from the backend
+        socket.on('move_result', (data) => {
+            document.getElementById('response-area').textContent = "AI Response: " + data.result;
+        });
+
+        // Listen for error messages from the backend
+        socket.on('error', (data) => {
+            document.getElementById('error-message').textContent = data.message;
+        });
+    </script>
+</body>
+</html>
