@@ -13,6 +13,10 @@ source env/bin/activate  # Activate the environment in linux
 # install required packages
 pip install flask flask-socketio google-cloud-aiplatform python-dotenv
 
+pip3 install -r requirements.txt
+
+python3 app.py
+
 Taabish Khan
 Zohair Khan
 Hamza Gelle

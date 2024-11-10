@@ -1,0 +1,107 @@
+/* Import pixelated font for Game Boy look */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* Set up basic styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Press Start 2P', Arial, sans-serif;
+}
+
+/* Body styling */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: red; /* Darker gray background */
+    color: #fff;
+}
+
+/* Outer border simulating the device frame */
+.outer-frame {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    background: #333;
+    border: 12px solid #222;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+}
+
+/* Main screen container */
+.login-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    background: #0f380f; /* Greenish retro screen color */
+    border: 5px solid #000;
+    border-radius: 10px;
+    box-shadow: inset 0 0 8px #004d00, 0 4px 10px rgba(0, 0, 0, 0.6);
+    max-width: 400px;
+}
+
+/* Title styling */
+.title {
+    font-size: 2rem;
+    color: #ffcc00;
+    text-shadow: 2px 2px #000;
+    margin-bottom: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Form and input styling */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.input-field {
+    padding: 0.8rem;
+    font-size: 1rem;
+    border: none;
+    border-bottom: 3px solid #ffcc00;
+    background: #2e2e2e;
+    color: #fff;
+    text-align: center;
+    border-radius: 5px;
+    outline: none;
+}
+
+.input-field::placeholder {
+    color: #b3b3b3;
+}
+
+/* Enter button styling */
+.enter-button {
+    padding: 0.8rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #fff;
+    background: linear-gradient(45deg, #ff0000, #ffcc00);
+    border: 3px solid #000;
+    border-radius: 5px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: transform 0.2s;
+}
+
+.enter-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 8px rgba(255, 0, 0, 0.6);
+}
+
+/* Optional: Adding Game Boy branding */
+.gameboy-logo {
+    position: absolute;
+    top: 1rem;
+    font-size: 1.2rem;
+    color: #fff;
+    text-shadow: 1px 1px #000;
+    letter-spacing: 2px;
+}
