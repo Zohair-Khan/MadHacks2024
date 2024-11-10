@@ -1,20 +1,29 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template, request, redirect, url_for, session
 from dotenv import load_dotenv
 import os
-
+from flask_cors import CORS
+import requests
 from ai_api import fight
+from collections import deque
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret_key')
+CORS(app)
+
+VIEW_GAME_LINK = "http://127.0.0.1:5000/view_game/"
 
 games = []
 
-@app.route("/")
-def hello_world():
-    return jsonify("Hello, World!")
+waiting_queue = deque()
+
+@app.route('/')
+def login():
+    """Login page for entering username."""
+    return render_template('entry.html')
+
 
 @app.route("/new_game_id")
 def new_game_id():
@@ -91,6 +100,12 @@ def play_turn(game_id):
         
 
     return jsonify(games[game_id])
+
+@app.route("/view_game/<game_id>")
+def view_game(game_id):
+    game_id = int(game_id)
+    return jsonify(games[game_id])
+
 
 if __name__ == "__main__":
     app.run(debug=True)
