@@ -1,17 +1,125 @@
-<!-- templates/login.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Gemini Text Game</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Keyframes for shifting gradient effect */
+        @keyframes gradientShift {
+            0% {
+                background: linear-gradient(45deg, #d90429, #0c0c0c);
+            }
+            25% {
+                background: linear-gradient(45deg, #d90429, #1a1a1a);
+            }
+            50% {
+                background: linear-gradient(45deg, #ff9f00, #0c0c0c);
+            }
+            75% {
+                background: linear-gradient(45deg, #ff9f00, #1a1a1a);
+            }
+            100% {
+                background: linear-gradient(45deg, #d90429, #0c0c0c);
+            }
+        }
+
+        /* Basic styling */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            background: linear-gradient(45deg, #d90429, #0c0c0c);
+            animation: gradientShift 10s ease infinite;
+            color: #fff;
+            font-family: 'Impact', sans-serif;
+        }
+
+        /* Main container styling */
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            background: rgba(26, 26, 26, 0.8); /* Semi-transparent background */
+            border: 5px solid #444;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.9), 0 4px 15px rgba(255, 0, 0, 0.6);
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Title styling */
+        h1 {
+            font-size: 2.8rem;
+            color: #d90429;
+            text-shadow: 3px 3px 0px #000, 5px 5px 2px rgba(0, 0, 0, 0.7);
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Label styling */
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+        }
+
+        /* Input box styling */
+        .input-bubble {
+            padding: 0.8rem;
+            font-size: 1rem;
+            background: #fff;
+            color: #000;
+            text-align: center;
+            border-radius: 25px;
+            outline: none;
+            width: 60%; /* 40% smaller */
+            box-sizing: border-box;
+            margin-bottom: 1.2rem;
+            letter-spacing: 1px;
+            border: 2px solid #000;
+        }
+
+        /* Button styling */
+        button[type="submit"] {
+            padding: 0.8rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+            background: #d90429;
+            border: 2px solid #111;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 0 10px rgba(217, 4, 41, 0.8);
+        }
+
+        button[type="submit"]:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(217, 4, 41, 1);
+        }
+
+    </style>
 </head>
 <body>
-    <h1>Welcome to the Gemini Text Game</h1>
-    <form action="{{ url_for('join') }}" method="POST">
-        <label for="username">Enter your username:</label>
-        <input type="text" id="username" name="username" required>
-        <button type="submit">Join Queue</button>
-    </form>
+    <div class="container">
+        <h1>Gemini Text Game</h1>
+        <form action="/join" method="POST">
+            <label for="username">Enter Player Name: </label>
+            <input type="text" id="username" name="username" class="input-bubble" required>
+            <button type="submit">Join Game</button>
+        </form>
+    </div>
 </body>
 </html>
