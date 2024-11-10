@@ -97,45 +97,6 @@ def pair_clients():
         else:
             print(f"[ERROR] Could not retrieve sids for {player1} or {player2}.")
 
-    """Pair two clients if available and start a game."""
-    if client_queue.qsize() >= 2:
-        player1 = client_queue.get()
-        player2 = client_queue.get()
-
-        # Create a unique game ID and initialize the game
-        game_id = f"game_{player1}_{player2}"
-        games_in_progress[game_id] = {
-            "players": [player1, player2],
-            "current_turn": player1,  # Set player1 as the starting player
-            "moves": []
-        }
-
-        # Retrieve sids using username-to-sid mapping
-        player1_sid = username_sid_map.get(player1)
-        player2_sid = username_sid_map.get(player2)
-
-        print(f"[DEBUG] Pairing {player1} and {player2} with game_id {game_id}.")
-        
-        if player1_sid and player2_sid:
-            # Correct order: sid first, then the room name (game_id)
-            join_room(player1_sid, game_id)
-            join_room(player2_sid, game_id)
-            print(f"[DEBUG] {player1} and {player2} have joined room {game_id}")
-
-            # Notify both players to redirect to the game page
-            socketio.emit('start_game', {'game_id': game_id, 'opponent': player2, 'is_turn': True}, to=player1_sid)
-            socketio.emit('start_game', {'game_id': game_id, 'opponent': player1, 'is_turn': False}, to=player2_sid)
-
-            # Immediately notify Player 1 to start their turn
-            print(f"[DEBUG] Emitting start_turn to {player1}")
-            socketio.emit('start_turn', {'player': player1}, to=player1_sid)
-
-            # Notify Player 2 that they should wait for their turn
-            print(f"[DEBUG] Emitting waiting_turn to {player2}")
-            socketio.emit('waiting_turn', {'player': player1}, to=player2_sid)
-        else:
-            print(f"[ERROR] Could not retrieve sids for {player1} or {player2}.")
-
 @app.route('/game/<game_id>')
 def game(game_id):
     """Dynamic game page."""
