@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Gemini Text Game</title>
+    <title>Login - MAD MATCHUPS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         /* Keyframes for shifting gradient effect */
         @keyframes gradientShift {
@@ -114,7 +115,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Gemini Text Game</h1>
+        <h1>MAD MATCHUPS</h1>
         <form action="/join" method="POST">
             <label for="username">Enter Player Name: </label>
             <input type="text" id="username" name="username" class="input-bubble" required>

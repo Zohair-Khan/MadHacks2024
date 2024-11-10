@@ -3,52 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Waiting - Gemini Text Game</title>
+    <title>Waiting - MADS MATCHUPS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
-        /* Basic styling */
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: #0c0c0c;
-            color: #fff;
-            font-family: 'Impact', sans-serif;
-            margin: 0;
-            overflow: hidden;
-        }
-
-        /* Main container with chain border effect */
-        .hood-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 2rem;
-            background: #1a1a1a;
-            border: 5px solid #444;
-            border-radius: 15px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.9), 0 4px 15px rgba(255, 0, 0, 0.6);
-            max-width: 400px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Chain around the screen box */
-        .hood-container::before {
-            content: '';
-            position: absolute;
-            top: -10px;
-            left: -10px;
-            right: -10px;
-            bottom: -10px;
-            background-image: url('YOUR_CHAIN_IMAGE_URL'); /* Replace with your chain image URL */
-            background-size: contain;
-            background-position: center;
-            background-repeat: repeat;
-            border-radius: 15px;
-            z-index: -1;
-        }
 
         /* Title styling */
         h1 {
@@ -80,35 +37,38 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            transition: transform 0.2s;
-        }
+            transition: transform 0.2s;}
 
-        .enter-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
-        }
-
-    </style>
-</head>
-<body>
-    <div class="hood-container">
-        <h1>Waiting for Opponents...</h1>
-        <p>Please wait while we find an opponent for you.</p>
-        <button class="enter-button">Join Queue</button>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
-    <script>
-        const socket = io();
-
-        // Listen for start_game event to be paired and redirected
-        socket.on('start_game', (data) => {
-            window.location.href = `/game/${data.game_id}`;
-        });
-
-        // Join the queue when the page loads
-        socket.emit('join_queue');
-        socket.emit('pair_clients');
-    </script>
-</body>
-</html>
+            <script>
+                let intervalId;
+            
+                function joinQueue() {
+                    fetch('/join_queue')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                document.querySelector('p').textContent = "Waiting for an opponent...";
+                                intervalId = setInterval(checkForGame, 5000);  // Poll every 5 seconds
+                            } else {
+                                alert("Failed to join the queue. Please try again.");
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error joining queue:", error);
+                        });
+                }
+            
+                function checkForGame() {
+                    fetch('/check_for_game')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.game_id) {
+                                clearInterval(intervalId);  // Stop polling
+                                window.location.href = /game/${data.game_id};  // Redirect to the game page
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error checking for game:", error);
+                        });
+                }
+            </script> 

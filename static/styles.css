@@ -1,0 +1,134 @@
+/* General body styling for all pages */
+body {
+    font-family: 'Impact', sans-serif;
+    margin: 0;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(45deg, #d90429, #0c0c0c);
+    animation: gradientShift 10s ease infinite;
+    color: #fff;
+}
+
+/* Gradient shift animation */
+@keyframes gradientShift {
+    0% { background: linear-gradient(45deg, #d90429, #0c0c0c); }
+    25% { background: linear-gradient(45deg, #d90429, #1a1a1a); }
+    50% { background: linear-gradient(45deg, #ff9f00, #0c0c0c); }
+    75% { background: linear-gradient(45deg, #ff9f00, #1a1a1a); }
+    100% { background: linear-gradient(45deg, #d90429, #0c0c0c); }
+}
+
+/* Container styling for all main content areas */
+.container, .hood-container, .game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    background: rgba(26, 26, 26, 0.8);
+    border: 5px solid #444;
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.9), 0 4px 15px rgba(255, 0, 0, 0.6);
+    max-width: 400px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Title styling for headings */
+h1 {
+    font-size: 2.8rem;
+    color: #d90429;
+    text-shadow: 3px 3px 0px #000, 5px 5px 2px rgba(0, 0, 0, 0.7);
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Chain border effect on the waiting page */
+.hood-container::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    background-image: url('YOUR_CHAIN_IMAGE_URL'); /* Replace with your chain image URL */
+    background-size: contain;
+    background-position: center;
+    background-repeat: repeat;
+    border-radius: 15px;
+    z-index: -1;
+}
+
+/* Label and input styling for login form */
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+}
+
+.input-bubble {
+    padding: 0.8rem;
+    font-size: 1rem;
+    background: #fff;
+    color: #000;
+    text-align: center;
+    border-radius: 25px;
+    outline: none;
+    width: 60%;
+    box-sizing: border-box;
+    margin-bottom: 1.2rem;
+    letter-spacing: 1px;
+    border: 2px solid #000;
+}
+
+/* Button styling for all pages */
+button, .enter-button {
+    padding: 1rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #fff;
+    background: linear-gradient(45deg, #ff0000, #ffcc00);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button[type="submit"] {
+    background: #d90429;
+    border: 2px solid #111;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: 0 0 10px rgba(217, 4, 41, 0.8);
+}
+
+button:hover, .enter-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+}
+
+/* Additional styles for prompt input on the game page */
+#promptInput {
+    width: 300px;
+    padding: 8px;
+    margin-bottom: 1rem;
+    text-align: center;
+    font-size: 1rem;
+}
+
+/* Response and error messages */
+#response-area, #error-message {
+    margin-top: 20px;
+    font-weight: bold;
+}
+
+#error-message {
+    color: red;
+}

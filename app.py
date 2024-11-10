@@ -1,9 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, session
-from flask_socketio import SocketIO, emit, join_room
+from flask import Flask, render_template, session, request, redirect, url_for, jsonify
 from dotenv import load_dotenv
 import os
 import queue
-from ai_api import generate_text
+import requests  # For HTTP requests to gameplay_api
 import threading
 import time
 
@@ -12,12 +11,13 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret_key')
-socketio = SocketIO(app, manage_session=True)
 
 # Queue and game tracking
-client_queue = queue.Queue()
-games_in_progress = {}
-username_sid_map = {}  # Track mapping of username to session IDs (sids)
+client_queue = queue.Queue()  # Queue to hold players waiting for a game
+username_game_map = {}  # Map usernames to game IDs
+
+# URL of the gameplay API service (assumes gameplay_api.py is running on port 5001)
+GAMEPLAY_API_URL = "http://127.0.0.1:5001/gameplay"
 
 @app.route('/')
 def login():
@@ -40,103 +40,85 @@ def waiting():
     """Waiting page where users wait for an opponent."""
     return render_template('waiting.html')
 
-@socketio.on('connect')
-def handle_connect():
-    """Handles client connection and stores their sid."""
-    username = session.get('username')
-    if username:
-        username_sid_map[username] = request.sid
-        print(f"[DEBUG] {username} connected with sid {request.sid}.")
-
-@socketio.on('join_queue')
-def join_queue():
-    """Handles adding user to the queue and pairing."""
-    username = session.get('username')
-    if username:
-        print(f"[DEBUG] {username} has joined the queue.")
-        
-    pair_clients()
-
-def pair_clients():
-    """Pair two clients if available and start a game."""
-    if client_queue.qsize() >= 2:
-        player1 = client_queue.get()
-        player2 = client_queue.get()
-
-        # Create a unique game ID and initialize the game
-        game_id = f"game_{player1}_{player2}"
-        games_in_progress[game_id] = {
-            "players": [player1, player2],
-            "current_turn": player1,  # Set player1 as the starting player
-            "moves": []
-        }
-
-        # Retrieve sids using username-to-sid mapping
-        player1_sid = username_sid_map.get(player1)
-        player2_sid = username_sid_map.get(player2)
-
-        print(f"[DEBUG] Pairing {player1} and {player2} with game_id {game_id}.")
-
-        if player1_sid and player2_sid:
-            # Use the game ID as the room name and have both players join this room
-            join_room(game_id, sid=player1_sid)
-            join_room(game_id, sid=player2_sid)
-            print(f"[DEBUG] {player1} and {player2} have joined room {game_id}")
-
-            # Notify both players to redirect to the game page
-            socketio.emit('start_game', {'game_id': game_id, 'opponent': player2, 'is_turn': True}, to=player1_sid)
-            socketio.emit('start_game', {'game_id': game_id, 'opponent': player1, 'is_turn': False}, to=player2_sid)
-
-            # Immediately notify Player 1 to start their turn
-            print(f"[DEBUG] Emitting start_turn to {player1}")
-            socketio.emit('start_turn', {'player': player1}, to=player1_sid)
-
-            # Notify Player 2 that they should wait for their turn
-            print(f"[DEBUG] Emitting waiting_turn to {player2}")
-            socketio.emit('waiting_turn', {'player': player1}, to=player2_sid)
-        else:
-            print(f"[ERROR] Could not retrieve sids for {player1} or {player2}.")
-
 @app.route('/game/<game_id>')
 def game(game_id):
     """Dynamic game page."""
     return render_template('game.html', game_id=game_id)
 
-@socketio.on('submit_move')
-def handle_submit_move(data):
-    """Handles move submissions and turn-switching."""
-    game_id = data.get("game_id")
-    prompt = data.get("prompt")
-    game = games_in_progress.get(game_id)
+@app.route('/join_queue', methods=['GET'])
+def join_queue_route():
+    """API endpoint to add the user to the queue."""
+    username = session.get('username')
+    if username:
+        client_queue.put(username)
+        return jsonify({"success": True})
+    return jsonify({"success": False})
+
+@app.route('/check_for_game', methods=['GET'])
+def check_for_game():
+    """Polls to check if a game has been assigned to the user."""
+    username = session.get('username')
+    game_id = username_game_map.get(username)
+    if game_id is not None:
+        return jsonify({"game_id": game_id})
+    return jsonify({"game_id": None})
+
+@app.route('/poll_game_state/<game_id>', methods=['GET'])
+def poll_game_state(game_id):
+    """Endpoint for polling the current state of a game."""
+    response = requests.get(f"{GAMEPLAY_API_URL}/get_game_state/{game_id}")
+    return jsonify(response.json())
+
+@app.route('/poll_turn/<game_id>', methods=['GET'])
+def poll_turn(game_id):
+    """Check if it is the player's turn."""
+    username = session.get('username')
+    if not username:
+        return jsonify({"error": "User not logged in"}), 403
+
+    response = requests.get(f"{GAMEPLAY_API_URL}/check_turn/{game_id}", params={"player": username})
+    return jsonify(response.json())
+
+@app.route('/submit_move', methods=['POST'])
+def submit_move():
+    """Handles move submissions."""
+    game_id = request.json.get("game_id")
+    prompt = request.json.get("prompt")
     username = session.get('username')
 
-    if game and game['current_turn'] == username:
-        # Generate AI response and switch turn
-        response = generate_text(prompt)
-        game['moves'].append({"player": username, "prompt": prompt, "response": response})
-        game['current_turn'] = game['players'][1] if game['current_turn'] == game['players'][0] else game['players'][0]
+    response = requests.post(f"{GAMEPLAY_API_URL}/play_turn/{game_id}", json={"player": username, "champion": prompt})
+    return jsonify(response.json())
 
-        # Notify both players of the move and turn change
-        socketio.emit('move_result', {'prompt': prompt, 'response': response, 'player': username}, room=game_id)
-        
-        # Notify the next player to take their turn
-        next_player = game['current_turn']
-        next_player_sid = username_sid_map.get(next_player)
-        socketio.emit('start_turn', {'player': next_player}, room=next_player_sid)
-    else:
-        emit('error', {'message': 'Not your turn.'})
-
-def log_queue():
-    """Periodically log the players in the queue."""
+def pair_clients():
+    """Continuously checks the client queue and pairs two clients to start a game."""
     while True:
-        # Get all usernames currently in the queue (without dequeuing them)
-        queue_list = list(client_queue.queue)
-        print(f"[DEBUG] Players currently in queue: {queue_list}")
-        time.sleep(5)  # Log every 5 seconds
+        # Only proceed if there are at least two players in the queue
+        if client_queue.qsize() >= 2:
+            # Retrieve two players from the queue
+            player1 = client_queue.get()
+            player2 = client_queue.get()
 
-# Start the queue logging in a separate background thread
-threading.Thread(target=log_queue, daemon=True).start()
+            # Request a new game ID from the gameplay_api service
+            response = requests.get(f"{GAMEPLAY_API_URL}/new_game_id")
+            game_id = response.json().get("game_id")  # Get the game ID from the response
+
+            if game_id is not None:
+                # Set up the game with players via gameplay_api service
+                requests.get(f"{GAMEPLAY_API_URL}/game_setup/{game_id}", params={'players': [player1, player2]})
+
+                # Map each player to the game ID
+                username_game_map[player1] = game_id
+                username_game_map[player2] = game_id
+
+                print(f"[DEBUG] Paired {player1} and {player2} in game {game_id}")
+            else:
+                print("[ERROR] Failed to retrieve a game ID from gameplay_api.")
+        
+        # Poll the queue every second
+        time.sleep(1)
+
+# Start pairing clients in a background thread
+threading.Thread(target=pair_clients, daemon=True).start()
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
-    
+    app.run(debug=True)
