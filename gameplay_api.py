@@ -22,7 +22,7 @@ waiting_queue = deque()
 @app.route('/')
 def login():
     """Login page for entering username."""
-    return render_template('entry.html')
+    return render_template('login.html')
 
 
 @app.route("/new_game_id")
